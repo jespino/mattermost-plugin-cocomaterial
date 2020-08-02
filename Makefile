@@ -39,7 +39,11 @@ apply:
 
 ## Runs eslint and golangci-lint
 .PHONY: check-style
+ifneq ($(HAS_WEBAPP),)
 check-style: webapp/node_modules
+else
+check-style:
+endif
 	@echo Checking for style guide compliance
 
 ifneq ($(HAS_WEBAPP),)
@@ -75,16 +79,16 @@ endif
 endif
 
 ## Ensures NPM dependencies are installed without having to run this all the time.
-webapp/node_modules: webapp/package.json
 ifneq ($(HAS_WEBAPP),)
+webapp/node_modules: webapp/package.json
 	cd webapp && $(NPM) install
 	touch $@
 endif
 
 ## Builds the webapp, if it exists.
 .PHONY: webapp
-webapp: webapp/node_modules
 ifneq ($(HAS_WEBAPP),)
+webapp: webapp/node_modules
 ifeq ($(DEBUG),)
 	cd webapp && $(NPM) run build;
 else
@@ -181,7 +185,11 @@ detach: setup-attach
 
 ## Runs any lints and unit tests defined for the server and webapp, if they exist.
 .PHONY: test
+ifneq ($(HAS_WEBAPP),)
 test: webapp/node_modules
+else
+test:
+endif
 ifneq ($(HAS_SERVER),)
 	$(GO) test -v $(GO_TEST_FLAGS) ./server/...
 endif
@@ -191,7 +199,7 @@ endif
 
 ## Creates a coverage report for the server code.
 .PHONY: coverage
-coverage: webapp/node_modules
+coverage:
 ifneq ($(HAS_SERVER),)
 	$(GO) test $(GO_TEST_FLAGS) -coverprofile=server/coverage.txt ./server/...
 	$(GO) tool cover -html=server/coverage.txt
